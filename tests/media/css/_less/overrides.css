@@ -1,0 +1,15 @@
+/*
+	Less Framework 2, version 2.0
+	by Joni Korpi
+	-----------------------------
+	http://lessframework.com
+
+	Overrides for iPhone 4 and other high device-pixel-ratio devices
+	----------------------------------------------------------------
+*/
+
+@media
+	only screen and (-webkit-min-device-pixel-ratio: 1.5),
+	only screen and (min-device-pixel-ratio: 1.5) {
+		
+}

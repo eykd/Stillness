@@ -1,0 +1,15 @@
+/*
+	Less Framework 2, version 2.0
+	by Joni Korpi
+	-----------------------------
+	http://lessframework.com
+
+	768 px layout for iPads, netbooks, and IE
+*/
+@media only screen and (min-width: 768px) {
+    
+    body {
+    	padding: 0 5%;
+    	width: 90%;
+    }
+}

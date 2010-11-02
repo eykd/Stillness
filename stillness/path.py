@@ -507,7 +507,7 @@ class path(_base):
         """
         cp = re.compile(pattern)
         for f in self.walkfiles(errors=errors):
-            if re.match(f.name):
+            if cp.match(f.name):
                 yield f
 
     def fnmatch(self, pattern):

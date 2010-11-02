@@ -1,0 +1,16 @@
+/*
+Less Framework 2, version 2.0
+by Joni Korpi
+-----------------------------
+http://lessframework.com
+
+320 px layout for smartphones
+*/
+
+body {
+	padding: 0 5%;
+	width: 90%;
+}
+.column {
+    padding: 9px 20px 9px 0;
+}

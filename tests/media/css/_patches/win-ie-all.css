@@ -1,0 +1,15 @@
+/*-  SELF-CLEARING FLOATS
+----------------------------------------------------------------------*/
+.mod {zoom: 1;}
+
+
+
+/*-  TELL IE7+ TO SCALE IMAGES USING A MORE ATTRACTIVE METHOD
+----------------------------------------------------------------------*/
+img {
+	-ms-interpolation-mode: bicubic;
+}
+
+/* * html div#division { */
+/*   width: expression( document.body.clientWidth > 776 ? "777px" : "auto" ); */ /* sets max-width for IE */
+/* } */

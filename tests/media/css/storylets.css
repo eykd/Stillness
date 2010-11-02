@@ -1,0 +1,23 @@
+.action {
+    float: right;
+    right: 15px;
+    color: #444;
+    height: 18px;
+    font: 600 12px/12px Helvetica, Verdana, sans-serif; 
+    border: 1px solid #783000;
+    padding: 2px;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+}
+.action:hover {
+    color: #000;
+    background-color: #00FC00;   
+}
+
+.storylet.choice strong {
+    color: #444;
+}
+.storylet.choice {
+    font-weight: 500;
+}

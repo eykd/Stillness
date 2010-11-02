@@ -1,0 +1,18 @@
+/*
+	Less Framework 2, version 2.0
+	by Joni Korpi
+	-----------------------------
+	http://lessframework.com
+
+	1224 px layout for desktops and laptops
+*/
+
+@media only screen and (min-width: 1224px) {
+    body {
+    	padding: 0 10%;
+    	width: 80%;
+    }
+    .column {
+        padding: 9px 40px 9px 0;
+    }
+}

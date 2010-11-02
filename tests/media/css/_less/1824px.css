@@ -1,0 +1,18 @@
+/*
+	Less Framework 2, version 2.0
+	by Joni Korpi
+	-----------------------------
+	http://lessframework.com
+
+	1824 px layout for gigantic screens   (24px gutters)
+*/
+
+@media only screen and (min-width: 1824px) {
+    body {
+    	padding: 0 15%;
+    	width: 70%;
+    }
+    .column {
+        padding: 9px 50px 9px 0;
+    }	
+}
