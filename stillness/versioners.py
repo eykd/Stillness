@@ -36,13 +36,24 @@ class Versions(dict):
 
     ### Versioners
     def SHA1Sum(klass, filename):
+        """Returns 8 characters from the SHA1 sum of the file contents.
+        """
         return hashlib.sha1(path(filename).text()).hexdigest()[:8]
 
     def MD5Sum(klass, filename):
+        """Returns 8 characters from the MD5 sum of the file contents.
+        """
         return hashlib.md5(path(filename).text()).hexdigest()[:8]
 
     def FileTimestamp(klass, filename):
+        """Returns the timestamp of the file.
+        """
         return str(int(path(filename).st_mtime))
+
+    def Constant(klass, filename):
+        """Return a constant version.
+        """
+        return '42'
 
     ### Readers and writers
     def writeJSON(self, filename):

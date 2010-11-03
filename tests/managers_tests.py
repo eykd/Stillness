@@ -2,6 +2,8 @@
 """managers_tests.py -- tests for the AssetManager and FileMap.
 """
 import unittest
+import itertools
+import time
 
 from stillness import managers
 from stillness.path import path
@@ -27,17 +29,72 @@ class AssetManagerTests(unittest.TestCase):
     def setUp(self):
         self.assets = managers.AssetManager(**self.options)
 
+        # Mock time.time to return deterministic results.
+        self.oldtime = time.time
+        time.time = lambda: 42
+
+    def tearDown(self):
+        time.time = self.oldtime
+
     def test_find_assets(self):
         assets = set(self.assets.find_assets())
         expected_assets = set((self.options['common_path'] / 'images').listdir())
         self.assertEqual(assets, expected_assets)
 
+    def test_get_asset_url_debug_is_true(self):
+        self.assets.options['debug'] = True
+        for x in 'abcabc':
+            url = self.assets.get_asset_url(x)
+            self.assertEqual(url, "http://%(x)s.mycdn.org/media/%(x)s?time=42" % {'x': x})
+
+    def test_get_asset_url_debug_is_false(self):
+        self.assets.options['debug'] = False
+        for x in 'abcabc':
+            url = self.assets.get_asset_url(x)
+            self.assertEqual(url, "http://%(x)s.mycdn.org/media/%(x)s" % {'x': x})
+
+    def test_get_css_asset_urls_debug_is_true(self):
+        self.assets.options['debug'] = True
+        main_file_key = 'css/main.min.css'
+        base_url_iter = itertools.cycle(self.assets.options['base_urls'])
+        expected_css_files = ["%s/%s?time=42" % (base_url_iter.next(), c)
+                              for c in self.assets.options['css']['map'][main_file_key]]
+        css_files = self.assets.get_css_urls(main_file_key)
+        self.assertEqual(css_files, expected_css_files)
+
+    def test_get_css_asset_urls_debug_is_false(self):
+        self.assets.options['debug'] = False
+        main_file_key = 'css/main.min.css'
+        base_url_iter = itertools.cycle(self.assets.options['base_urls'])
+        expected_css_files = ["%s/%s" % (base_url_iter.next(), main_file_key)]
+        css_files = self.assets.get_css_urls(main_file_key)
+        self.assertEqual(css_files, expected_css_files)
+
+    def test_get_js_asset_urls_debug_is_true(self):
+        self.assets.options['debug'] = True
+        main_file_key = 'js/main.min.js'
+        base_url_iter = itertools.cycle(self.assets.options['base_urls'])
+        expected_css_files = ["%s/%s?time=42" % (base_url_iter.next(), c)
+                              for c in self.assets.options['css']['map'][main_file_key]]
+        css_files = self.assets.get_css_urls(main_file_key)
+        self.assertEqual(css_files, expected_css_files)
+
+    def test_get_js_asset_urls_debug_is_false(self):
+        self.assets.options['debug'] = False
+        main_file_key = 'js/main.min.js'
+        base_url_iter = itertools.cycle(self.assets.options['base_urls'])
+        expected_css_files = ["%s/%s" % (base_url_iter.next(), main_file_key)]
+        css_files = self.assets.get_css_urls(main_file_key)
+        self.assertEqual(css_files, expected_css_files)
+        
     options = dict(
         debug = True,
 
         common_path = __path__ / 'media',
         build_path = __path__ / 'build',
-        urls = ['/media'],
+        base_urls = ['http://a.mycdn.org/media', 
+                     'http://b.mycdn.org/media', 
+                     'http://c.mycdn.org/media'],
         delimiter = '\n/* BEGIN %(name)s */\n',
 
         css = dict(

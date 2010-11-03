@@ -4,6 +4,8 @@
 import sys
 import copy
 import subprocess
+import itertools
+import time
 
 try:
     from cStringIO import StringIO
@@ -106,7 +108,7 @@ class AssetManager(object):
 
         common_path = path('media'),
         build_path = path('build'),
-        urls = ['/media'],
+        base_urls = ['/media'],
         delimiter = '\n/* BEGIN %(name)s */\n',
 
         css = dict(
@@ -114,6 +116,7 @@ class AssetManager(object):
 
             minify = True,
             version = True,
+            versioner = 'SHA1Sum',
 
             asset_pattern = r'(?P<url>url(\([\'"]?(?P<filename>[^)]+\.[a-z]{3,4})(?P<fragment>#\w+)?[\'"]?\)))',
             minify_cmd = 'java -jar %(YUICOMPRESSOR)s --type css' % {'YUICOMPRESSOR': YUICOMPRESSOR},
@@ -129,6 +132,7 @@ class AssetManager(object):
         js = dict(
             minify = True,
             version = True,
+            versioner = 'SHA1Sum',
 
             map = dict(),
             minify_cmd = 'java -jar %(YUICOMPRESSOR)s --type js' % {'YUICOMPRESSOR': YUICOMPRESSOR},
@@ -160,6 +164,7 @@ class AssetManager(object):
         self.options['common_path'] = path(self.options['common_path'])
         self.options['css']['map'] = FileMap(self, 'css', self.options['css']['map'])
         self.options['js']['map'] = FileMap(self, 'js', self.options['js']['map'])
+        self.base_url_iter = itertools.cycle(self.options['base_urls'])
         self.versions = Versions()
 
     def find_assets(self):
@@ -177,6 +182,50 @@ class AssetManager(object):
             else:
                 for f in (common_path / asset_path).listdirRE(o['pattern']):
                     yield (asset_path, f)
+
+    def timestamp_url(self, url):
+        return '%s?time=%s' % (url, time.time())
+
+    def get_asset_url(self, file_key):
+        """Return the URL for the given asset file key.
+
+        If more than one base URL is specified, each call to this
+        method will use the next base url.
+        """
+        if file_key.startswith('http'):
+            url = file_key
+        else:
+            base_url = self.base_url_iter.next()
+            url = "%(base_url)s/%(file_key)s" % locals()
+
+        if self.options['debug']:
+            url = self.timestamp_url(url)
+
+        return url
+
+    def get_css_urls(self, file_key):
+        """Return the URLs for the given CSS asset file key.
+
+        If more than one base URL is specified, each call to this
+        method will use the next base url.
+        """
+        if self.options['debug']:
+            return [self.get_asset_url(css) for css in self.options['css']['map'][file_key]]
+        else:
+            self.options['css']['map'][file_key]  # Make sure it's defined.
+            return [self.get_asset_url(file_key)]
+
+    def get_js_urls(self, file_key):
+        """Return the URLs for the given JS asset file key.
+
+        If more than one base URL is specified, each call to this
+        method will use the next base url.
+        """
+        if self.options['debug']:
+            return [self.get_asset_url(css) for css in self.options['js']['map'][file_key]]
+        else:
+            self.options['js']['map'][file_key]  # Make sure it's defined.
+            return [self.get_asset_url(file_key)]
 
 
 def merge_dictionary(dst, src):
