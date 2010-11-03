@@ -33,8 +33,17 @@ class AssetManagerTests(unittest.TestCase):
         self.oldtime = time.time
         time.time = lambda: 42
 
+        #self.rmBuildPath()
+
     def tearDown(self):
         time.time = self.oldtime
+
+        #self.rmBuildPath()
+
+    def rmBuildPath(self):
+        # Remove the build_path, if it exists.
+        if self.options['build_path'].exists():
+            self.options['build_path'].rmtree()
 
     def test_find_assets(self):
         assets = set(self.assets.find_assets())
@@ -74,18 +83,63 @@ class AssetManagerTests(unittest.TestCase):
         self.assets.options['debug'] = True
         main_file_key = 'js/main.min.js'
         base_url_iter = itertools.cycle(self.assets.options['base_urls'])
-        expected_css_files = ["%s/%s?time=42" % (base_url_iter.next(), c)
-                              for c in self.assets.options['css']['map'][main_file_key]]
-        css_files = self.assets.get_css_urls(main_file_key)
-        self.assertEqual(css_files, expected_css_files)
+        expected_js_files = ["%s/%s?time=42" % (base_url_iter.next(), c)
+                              for c in self.assets.options['js']['map'][main_file_key]]
+        js_files = self.assets.get_js_urls(main_file_key)
+        self.assertEqual(js_files, expected_js_files)
 
     def test_get_js_asset_urls_debug_is_false(self):
         self.assets.options['debug'] = False
         main_file_key = 'js/main.min.js'
         base_url_iter = itertools.cycle(self.assets.options['base_urls'])
-        expected_css_files = ["%s/%s" % (base_url_iter.next(), main_file_key)]
-        css_files = self.assets.get_css_urls(main_file_key)
-        self.assertEqual(css_files, expected_css_files)
+        expected_js_files = ["%s/%s" % (base_url_iter.next(), main_file_key)]
+        js_files = self.assets.get_js_urls(main_file_key)
+        self.assertEqual(js_files, expected_js_files)
+
+    def test_get_css_asset_html_debug_is_true(self):
+        self.assets.options['debug'] = True
+        main_file_key = 'css/main.min.css'
+        base_url_iter = itertools.cycle(self.assets.options['base_urls'])
+        expected_css_html = '\n'.join(
+            '<link rel="stylesheet" type="text/css" href="%s/%s?time=42" media="all" />\n' % (base_url_iter.next(), c)
+            for c in self.assets.options['css']['map'][main_file_key])
+        css_html = self.assets.get_css_html(main_file_key)
+        self.assertEqual(css_html, expected_css_html)
+
+    def test_get_css_asset_html_debug_is_false(self):
+        self.assets.options['debug'] = False
+        main_file_key = 'css/main.min.css'
+        base_url_iter = itertools.cycle(self.assets.options['base_urls'])
+        expected_css_html = '<link rel="stylesheet" type="text/css" href="%s/%s?time=42" media="all" />\n\n' % (base_url_iter.next(), main_file_key)
+        css_html = self.assets.get_css_html(main_file_key)
+        self.assertEqual(css_html, expected_css_html)
+
+    def test_get_js_asset_html_debug_is_true(self):
+        self.assets.options['debug'] = True
+        main_file_key = 'js/main.min.js'
+        base_url_iter = itertools.cycle(self.assets.options['base_urls'])
+        expected_js_html = '\n'.join(
+            '<link rel="stylesheet" type="text/css" href="%s/%s?time=42" media="all" />\n\n' % (base_url_iter.next(), c)
+            for c in self.assets.options['js']['map'][main_file_key]
+            )
+        js_html = self.assets.get_js_html(main_file_key)
+        self.assertEqual(js_html, expected_js_html)
+
+    def test_get_js_asset_links_debug_is_false(self):
+        self.assets.options['debug'] = False
+        main_file_key = 'js/main.min.js'
+        base_url_iter = itertools.cycle(self.assets.options['base_urls'])
+        expected_js_html = ["%s/%s" % (base_url_iter.next(), main_file_key)]
+        js_html = self.assets.get_js_html(main_file_key)
+        self.assertEqual(js_html, expected_js_html)
+
+    def test_combine_files(self):
+        self.rmBuildPath()
+        self.assets.options['css']['map'].combine_files()
+        self.assets.options['js']['map'].combine_files()
+        for file_key in (self.assets.options['css']['map'].keys() + self.assets.options['js']['map'].keys()):
+            fp = (self.assets.options['build_path'] / file_key)
+            self.assert_(fp.exists())
         
     options = dict(
         debug = True,

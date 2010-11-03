@@ -2,10 +2,12 @@
 """stillness.managers -- Can you manage the stillness?
 """
 import sys
+import os
 import copy
 import subprocess
 import itertools
 import time
+import re
 
 try:
     from cStringIO import StringIO
@@ -68,6 +70,24 @@ class FileMap(dict):
             return True
     minify = property(minify)
 
+    def version(self):
+        if self.kind == 'js':
+            return self.manager.options['js']['version']
+        elif self.kind == 'css':
+            return self.manager.options['css']['version']
+        else:
+            return True
+    version = property(version)
+
+    def versioner(self):
+        if self.kind == 'js':
+            return self.manager.options['js']['versioner']
+        elif self.kind == 'css':
+            return self.manager.options['css']['versioner']
+        else:
+            return 'Constant'
+    versioner = property(versioner)
+
     def combine_files(self):
         """Combine the mapped files, minifying if specified.
         """
@@ -75,15 +95,61 @@ class FileMap(dict):
         build_path = self.manager.options['build_path']
         for file_key in self:
             out_path = build_path / file_key
+            if not out_path.parent.exists():
+                out_path.parent.makedirs()
             to_combine = self[file_key]
-            combined = self.combine(*(common_path / fk for fk in to_combine))
+            combined = self._combine(*(common_path / fk for fk in to_combine))
             if self.minify:
                 combined = self._minify_text(combined)
-            fo = out_path.open('w')
+            fo = open(out_path, 'w')
             try:
                 fo.write(combined)
             finally:
                 fo.close()
+            if self.version:
+                self.manager.versions.mapVersions(self.versioner, build_path, file_key)
+                if self.kind == 'css':
+                    fi = open(out_path, 'r')
+                    try:
+                        css = fi.read()
+                    finally:
+                        fi.close()
+                    fo = open(out_path, 'w')
+                    css = self._version_css_url_includes(build_path, file_key, css)
+                    try:
+                        fo.write(css)
+                    finally:
+                        fo.close()
+                    
+    def _version_css_url_includes(self, common_path, css, file_key):
+        cp = re.compile(self.manager.options['css']['asset_pattern'])
+        base_url_iter = self.manager.base_url_iter
+
+        buffer = StringIO()
+        for line in css.split('\n'):
+            matches = []
+            for match in cp.finditer(line):
+                base_url = base_url_iter.next()
+                grp = match.groupdict()
+                relative_path = grp['filename']
+                url = self._derive_absolute_url_from_relative(self, base_url, common_path, file_key, relative_path)
+                url = 'url(%s%s)' % (url, grp.get('fragment', ''))
+                matches.append(grp['url'], url)
+
+            for old, new in matches:
+                line = line.replace(old, new)
+
+            buffer.write(line)
+
+        return buffer.getvalue()
+
+    def _derive_absolute_url_from_relative(self, base_url, common_path, from_file_key, to_rel_filepath):
+        if to_rel_filepath.startswith('/'):  # Absolute path
+            abs_path = to_rel_filepath
+        else:
+            full_path = (common_path / from_file_key).dirname() / to_rel_filepath
+            abs_path = full_path.relpathto(common_path)
+        return path(base_url) / abs_path
 
     def _minify_text(self, text):
         compressor = subprocess.Popen(self.minify_command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -126,6 +192,7 @@ class AssetManager(object):
                 'type': 'text/css',
                 'title': '',
                 'class': '',
+                'media': 'all',
                 },
             ),
 
@@ -206,8 +273,8 @@ class AssetManager(object):
     def get_css_urls(self, file_key):
         """Return the URLs for the given CSS asset file key.
 
-        If more than one base URL is specified, each call to this
-        method will use the next base url.
+        If more than one base URL is specified in options, each call
+        to this method will use the next base url.
         """
         if self.options['debug']:
             return [self.get_asset_url(css) for css in self.options['css']['map'][file_key]]
@@ -215,17 +282,67 @@ class AssetManager(object):
             self.options['css']['map'][file_key]  # Make sure it's defined.
             return [self.get_asset_url(file_key)]
 
+    def get_css_html(self, file_key, alt='', link_type='', title='', link_class='', media='', delimiter="\n"):
+        """Return the <link> HTML for the given CSS asset file key.
+
+        If more than one base URL is specified in options, each call
+        to this method will use the next base url.
+        """
+        urls = self.get_css_urls(file_key)
+        template = self.options['css']['html']
+        context = dict(self.options['css']['html_defaults'])
+        if alt:
+            context['alt'] = alt
+        if link_type:
+            context['type'] = link_type
+        if title:
+            context['title'] = 'title="%s" ' % title
+        if link_class:
+            context['class'] = 'class="%s" ' % link_class
+        if media:
+            context['media'] = media
+
+        buffer = StringIO()
+        for url in urls:
+            context['href'] = url
+            buffer.write(template % context)
+            buffer.write(delimiter)
+
+        return buffer.getvalue()
+
     def get_js_urls(self, file_key):
         """Return the URLs for the given JS asset file key.
 
-        If more than one base URL is specified, each call to this
-        method will use the next base url.
+        If more than one base URL is specified in options, each call
+        to this method will use the next base url.
         """
         if self.options['debug']:
             return [self.get_asset_url(css) for css in self.options['js']['map'][file_key]]
         else:
             self.options['js']['map'][file_key]  # Make sure it's defined.
             return [self.get_asset_url(file_key)]
+
+    def get_js_html(self, file_key, script_type='', charset='', delimiter='\n'):
+        """Return the <script> HTML for the given JS asset file key.
+
+        If more than one base URL is specified in options, each call
+        to this method will use the next base url.
+        """
+        urls = self.get_css_urls(file_key)
+        template = self.options['js']['html']
+        context = dict(self.options['js']['html_defaults'])
+        if script_type:
+            context['type'] = script_type
+        if charset:
+            context['charset'] = charset
+
+        buffer = StringIO()
+        for url in urls:
+            context['src'] = url
+            buffer.write(template % context)
+            buffer.write(delimiter)
+
+        return buffer.getvalue()
 
 
 def merge_dictionary(dst, src):
