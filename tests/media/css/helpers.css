@@ -6,16 +6,6 @@ object,
 embed {max-width: 100%;}
 
 
-/*- Paul Irish's Bulletproof @font-face syntax: http://mky.be/font-face/bulletproof/ ----------*/
-/*
-@font-face {
-  font-family: 'Graublau Web';
-  src: url('GraublauWeb.eot');
-  src: local('☺'),
-         url('GraublauWeb.woff') format('woff'), url('GraublauWeb.ttf') format('truetype');
-}
-*/
-
 /*- LET'S GET STARTED!
 ----------------------------------------------------------------------*/
 
@@ -24,6 +14,31 @@ abbr {
 }
 
 
-/*  * Non-semantic helper classes  *//* for image replacement */.ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }/* Hide for both screenreaders and browsers   css-discuss.incutio.com/wiki/Screenreader_Visibility */.hidden { display: none; visibility: hidden; } /* Hide only visually, but have it available for screenreaders    www.webaim.org/techniques/css/invisiblecontent/    Solution from: j.mp/visuallyhidden - Thanks Jonathan Neal! */.visuallyhidden { position: absolute !important;      clip: rect(1px 1px 1px 1px); /* IE6, IE7 */  clip: rect(1px, 1px, 1px, 1px); }/* Hide visually and from screenreaders, but maintain layout */.invisible { visibility: hidden; }/* >> The Magnificent CLEARFIX << j.mp/phayesclearfix */.clearfix:after  { content: "\0020"; display: block; height: 0; clear: both; visibility: hidden; }/* Fix clearfix: blueprintcss.lighthouseapp.com/projects/15318/tickets/5-extra-margin-padding-bottom-of-page */.clearfix { zoom: 1; }
+/* 
+ * Non-semantic helper classes 
+ */
+
+/* for image replacement */
+.ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }
+
+/* Hide for both screenreaders and browsers
+   css-discuss.incutio.com/wiki/Screenreader_Visibility */
+.hidden { display: none; visibility: hidden; } 
+
+/* Hide only visually, but have it available for screenreaders 
+   www.webaim.org/techniques/css/invisiblecontent/ 
+   Solution from: j.mp/visuallyhidden - Thanks Jonathan Neal! */
+.visuallyhidden { position: absolute !important;    
+  clip: rect(1px 1px 1px 1px); /* IE6, IE7 */
+  clip: rect(1px, 1px, 1px, 1px); }
+
+/* Hide visually and from screenreaders, but maintain layout */
+.invisible { visibility: hidden; }
+
+/* >> The Magnificent CLEARFIX << j.mp/phayesclearfix */
+.clearfix:after  { content: "\0020"; display: block; height: 0; clear: both; visibility: hidden; }
+/* Fix clearfix: blueprintcss.lighthouseapp.com/projects/15318/tickets/5-extra-margin-padding-bottom-of-page */
+.clearfix { zoom: 1; }
+
 
 .justify { text-align: justify; }
