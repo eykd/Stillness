@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""pavement.py -- pavement for stillness.
+"""pavement.py -- pavement for stillness, the static asset management tool for stressed webmasters.
 
 Copyright 2010 David Eyk. All rights reserved.
 """
@@ -29,8 +29,9 @@ setup(
     author_email = "eykd@eykd.net",
     license = 'BSD',
 
-    short_description = 'Manage static assets for your website without breaking a sweat.',
+    description = 'A static asset management framework for stressed webmasters with deadlines.',
     long_description = open('README.rst').read(),
 
-    packages=['stillness'],
+    packages = ['stillness'],
+    include_package_data = True,
     )
