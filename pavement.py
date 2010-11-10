@@ -20,6 +20,17 @@ from paved.dist import *
 __path__ = path(__file__).abspath().dirname()
 site.addsitedir(__path__)
 
+options(
+    install_requires = [
+        ],
+    setup_requires = [
+        'Paver',
+        'Paved',
+        ],
+    tests_require = [
+        'nose',
+        ],
+    )
 
 setup(
     name = "Stillness",
@@ -34,4 +45,10 @@ setup(
 
     packages = ['stillness'],
     include_package_data = True,
+
+    install_requires = options.install_requires,
+    setup_requires = options.setup_requires,
+    tests_require = options.tests_require,
+
+    test_suite = "nose.collector",
     )
