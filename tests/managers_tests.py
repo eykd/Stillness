@@ -114,7 +114,7 @@ class AssetManagerTests(unittest.TestCase):
             ]
         for rel_path, file_key, expected_abs_path in rel_fk_abs:
             abs_path = self.assets.options['css']['map']._derive_absolute_url_from_relative(
-                base_url, common_path, file_key, rel_path
+                base_url, file_key, rel_path
                 )
             self.assertEqual(abs_path, expected_abs_path)
         

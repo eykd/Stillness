@@ -44,7 +44,7 @@ class FileMap(dict):
             raise RuntimeError("Hit the recursion limit while trying to include recursively-mapped files. Perhaps your have a loop?")
         for inc_key in self.get(filekey, ()):
             if inc_key in self:
-                for rfk in self._recurse_included_filekeys(inc_key, callcount+1):
+                for rfk in self._recurse_included_filekeys(inc_key, callcount + 1):
                     yield rfk
             else:
                 yield inc_key
@@ -132,7 +132,7 @@ class FileMap(dict):
                 base_url = base_url_iter.next()
                 grp = match.groupdict()
                 relative_path = grp['filename']
-                url = self._derive_absolute_url_from_relative(self, base_url, common_path, file_key, relative_path)
+                url = self._derive_absolute_url_from_relative(self, base_url, file_key, relative_path)
                 url = 'url(%s%s)' % (url, grp.get('fragment', ''))
                 matches.append(grp['url'], url)
 
@@ -143,12 +143,16 @@ class FileMap(dict):
 
         return buffer.getvalue()
 
-    def _derive_absolute_url_from_relative(self, base_url, common_path, from_file_key, to_rel_filepath):
+    def _derive_absolute_url_from_relative(self, base_url, file_key, to_rel_filepath):
         if to_rel_filepath.startswith('/'):  # Absolute path
             abs_path = to_rel_filepath
         else:
-            full_path = (common_path / from_file_key).dirname() / to_rel_filepath
-            abs_path = full_path.relpathto(common_path)
+            common_path = path('')
+            abs_path = ((common_path / file_key).dirname() / to_rel_filepath).abspath()
+            print common_path
+            print abs_path
+            abs_path = abs_path.parent.relpathto(common_path)
+            print abs_path
         return path(base_url) / abs_path
 
     def _minify_text(self, text):
